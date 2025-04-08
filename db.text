@@ -1,0 +1,38 @@
+-- Supabase posts 테이블 전체 필드 구성 SQL
+CREATE TABLE posts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  -- 기본 정보
+  title text NOT NULL,
+  content text NOT NULL,
+  user_id uuid REFERENCES auth.users(id),
+  nickname text,
+
+  -- 시간 정보
+  created_at timestamp DEFAULT now(),
+  last_edited_at timestamp,
+
+  -- 사용자 정보
+  ip_address text,
+  user_agent text,
+  device_info text,
+
+  -- 신고/관리용
+  reported_count int DEFAULT 0,
+  is_blinded boolean DEFAULT false,
+  is_deleted boolean DEFAULT false,
+  is_locked boolean DEFAULT false,
+  moderation_status text DEFAULT 'normal', -- normal / warning / flagged / hidden
+
+  -- UX/기능 확장용
+  views int DEFAULT 0,
+  likes int DEFAULT 0,
+  comments_count int DEFAULT 0,
+  emoji_reactions jsonb,
+  tags text[],
+  category text,
+  pinned_until timestamp,
+
+  -- 이력 관리
+  edited_count int DEFAULT 0
+);
