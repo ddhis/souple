@@ -1,16 +1,15 @@
 // app/post/[id]/page.tsx
+
 import supabase from '@/lib/supabaseClient'
 import { notFound } from 'next/navigation'
 import CommentForm from '@/components/comment-form'
 import CommentList from '@/components/comment-list'
 
-type PageProps = {
-  params: {
-    id: string
-  }
-}
-
-export default async function PostPage({ params }: PageProps) {
+export default async function PostPage({
+  params,
+}: {
+  params: { id: string }
+}) {
   const { data: post } = await supabase
     .from('posts')
     .select('*')
