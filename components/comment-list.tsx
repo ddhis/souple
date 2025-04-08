@@ -1,7 +1,7 @@
 'use client'
 
 import supabase from '@/lib/supabaseClient'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import CommentForm from '@/components/comment-form'
 
 interface Comment {
@@ -21,20 +21,20 @@ export default function CommentList({ postId }: { postId: string }) {
   const [comments, setComments] = useState<Comment[]>([])
   const [replyTarget, setReplyTarget] = useState<string | null>(null)
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     const { data } = await supabase
       .from('comments')
-      .select('*, profiles(nickname)')
+      .select('*, profiles:nickname')
       .eq('post_id', postId)
       .order('created_at', { ascending: true })
   
     setComments(data || [])
-  }
+  }, [postId])
   
-
   useEffect(() => {
     fetchComments()
-  }, [postId])
+  }, [fetchComments])
+  
 
   if (!comments || comments.length === 0)
     return <p className="text-gray-500">댓글이 없습니다.!!</p>

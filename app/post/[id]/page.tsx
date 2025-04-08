@@ -1,15 +1,24 @@
+// app/post/[id]/page.tsx
 import supabase from '@/lib/supabaseClient'
 import { notFound } from 'next/navigation'
 import CommentForm from '@/components/comment-form'
 import CommentList from '@/components/comment-list'
 
-type Params = { id: string }
+interface Post {
+  title: string
+  content: string
+  created_at: string
+  category: string
+  user_id: string
+}
 
-export default async function PostPage({ params }: { params: Params }) {
+export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+
   const { data: post } = await supabase
     .from('posts')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!post) return notFound()
@@ -24,11 +33,13 @@ export default async function PostPage({ params }: { params: Params }) {
         <p>{post.content}</p>
       </div>
 
+      {/* 댓글 작성 */}
       <h2 className="text-lg font-semibold mb-2">댓글 작성</h2>
-      <CommentForm postId={params.id} />
+      <CommentForm postId={id} />
 
+      {/* 댓글 리스트 */}
       <h2 className="text-lg font-semibold mt-10 mb-2">댓글 목록</h2>
-      <CommentList postId={params.id} />
+      <CommentList postId={id} />
     </main>
   )
 }
