@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import supabase from '@/lib/supabaseClient'
+import CommentList from '@/components/comment-list'
 
 interface Post {
   title: string
@@ -96,38 +97,8 @@ export default function PostDetailPage() {
       </div>
 
       <h2 className="text-xl font-semibold mb-2">댓글</h2>
-      {comments.length === 0 ? (
-        <p className="text-gray-500 mb-4">아직 댓글이 없습니다.</p>
-      ) : (
-        <ul className="mb-4">
-          {comments.map((comment) => (
-            <li key={comment.id} className="border-b py-2">
-              <p className="whitespace-pre-wrap">{comment.content}</p>
-              <p className="text-sm text-gray-500">작성일: {new Date(comment.created_at).toLocaleString()}</p>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {user ? (
-        <div className="mt-4">
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="댓글을 입력하세요"
-            className="w-full p-2 border rounded mb-2"
-          />
-          <button
-            onClick={handleCommentSubmit}
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-          >
-            댓글 등록
-          </button>
-          {commentError && <p className="text-red-500 mt-2">{commentError}</p>}
-        </div>
-      ) : (
-        <p className="text-sm text-gray-500 mt-4">댓글을 작성하려면 로그인하세요.</p>
-      )}
+      <CommentList postId={postId} />
+      
     </div>
   )
 }

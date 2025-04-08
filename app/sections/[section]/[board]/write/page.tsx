@@ -1,93 +1,63 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import supabase from '@/lib/supabaseClient'
 
-export default function BoardWritePage() {
-  const router = useRouter()
-  const params = useParams()
-  const section = params?.section as string
-  const board = params?.board as string
-
-  const [user, setUser] = useState<any>(null)
+export default function WritePage() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [category, setCategory] = useState('잡담') // 기본 카테고리
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) router.push('/login')
-      else setUser(user)
-    })
-  }, [router])
-
-  const getIpAddress = async () => {
-    try {
-      const res = await fetch('https://api64.ipify.org?format=json')
-      const data = await res.json()
-      return data.ip
-    } catch {
-      return 'unknown'
-    }
-  }
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  const { section, board } = useParams()
 
   const handleSubmit = async () => {
-    if (!title || !content) {
-      setError('제목과 내용을 입력해주세요.')
-      return
-    }
+    if (!title || !content) return alert('제목과 내용을 입력해주세요.')
+    setLoading(true)
 
-    const ip = await getIpAddress()
-    const userAgent = navigator.userAgent
-    const deviceInfo = `${navigator.platform} - ${navigator.language}`
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    const user_id = session?.user?.id || null
 
     const { error } = await supabase.from('posts').insert({
       title,
       content,
-      board_id: board,
-      category,
-      user_id: user.id,
-      ip_address: ip,
-      user_agent: userAgent,
-      device_info: deviceInfo
+      board_id: board as string,
+      user_id,
     })
 
-    if (error) setError(error.message)
-    else router.push(`/sections/${section}/${board}`)
+    setLoading(false)
+    if (error) return alert('작성에 실패했습니다.')
+    router.push(`/sections/${section}/${board}`)
   }
 
   return (
-    <div className="max-w-md mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">[{board}] 글쓰기</h2>
-      <input
-        type="text"
-        placeholder="제목"
-        className="w-full p-2 mb-2 border rounded"
-        onChange={(e) => setTitle(e.target.value)}
-      />
-      <select
-        className="w-full p-2 mb-2 border rounded"
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
-      >
-        <option value="잡담">잡담</option>
-        <option value="정보">정보</option>
-        <option value="기타">기타</option>
-      </select>
-      <textarea
-        placeholder="내용"
-        className="w-full p-2 mb-4 border rounded h-40"
-        onChange={(e) => setContent(e.target.value)}
-      />
-      <button
-        onClick={handleSubmit}
-        className="w-full bg-blue-500 text-white py-2 rounded"
-      >
-        등록하기
-      </button>
-      {error && <p className="text-red-500 mt-2">{error}</p>}
-    </div>
+    <main className="p-6 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">게시글 작성</h1>
+      <div className="space-y-4">
+        <input
+          type="text"
+          className="w-full p-2 border rounded"
+          placeholder="제목을 입력하세요"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <textarea
+          className="w-full p-2 border rounded h-48"
+          placeholder="내용을 입력하세요"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+        >
+          작성하기
+        </button>
+      </div>
+    </main>
   )
 }

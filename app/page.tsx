@@ -1,62 +1,57 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import supabase from '@/lib/supabaseClient'
 
-interface Post {
+interface Board {
   id: string
-  title: string
-  board_id: string
-  created_at: string
-  category: string
+  name: string
+  description: string | null
+  section_id: string
+  is_anonymous: boolean
+  category_type: string | null
+}
+
+interface Section {
+  id: string
+  name: string
 }
 
 export default function HomePage() {
-  const [recentPosts, setRecentPosts] = useState<Post[]>([])
+  const [sections, setSections] = useState<Section[]>([])
+  const [boards, setBoards] = useState<Board[]>([])
 
   useEffect(() => {
-    const fetchRecentPosts = async () => {
-      const { data } = await supabase
-        .from('posts')
-        .select('id, title, board_id, category, created_at')
-        .order('created_at', { ascending: false })
-        .limit(10)
+    const fetchData = async () => {
+      const { data: sectionsData } = await supabase.from('sections').select('*')
+      const { data: boardsData } = await supabase.from('boards').select('*')
 
-      if (data) setRecentPosts(data)
+      if (sectionsData) setSections(sectionsData)
+      if (boardsData) setBoards(boardsData)
     }
 
-    fetchRecentPosts()
+    fetchData()
   }, [])
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Souple 커뮤니티 메인</h1>
+    <main className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Souple 커뮤니티</h1>
 
-      <Link href="/sections" className="text-blue-600 hover:underline text-sm">
-        → 전체 게시판 보기
-      </Link>
-
-      <h2 className="text-xl font-semibold mt-6 mb-2">🆕 최근 올라온 글</h2>
-      {recentPosts.length === 0 ? (
-        <p className="text-gray-500">최근 글이 없습니다.</p>
-      ) : (
-        <ul className="mt-2">
-          {recentPosts.map((post) => (
-            <li key={post.id} className="border-b py-2">
-              <Link
-                href={`/sections/unknown/${post.board_id}/${post.id}`}
-                className="text-blue-500 font-medium hover:underline"
-              >
-                [{post.category}] {post.title}
-              </Link>
-              <p className="text-sm text-gray-500">
-                게시판: {post.board_id} | 작성일: {new Date(post.created_at).toLocaleString()}
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+      {sections.map((section) => (
+        <div key={section.id} className="mb-8">
+          <h2 className="text-xl font-semibold border-b pb-1 mb-2">{section.name}</h2>
+          <ul className="space-y-1">
+            {boards.filter((b) => b.section_id === section.id).map((board) => (
+              <li key={board.id}>
+                <a href={`/sections/${board.section_id}/${board.id}`} className="text-blue-600 hover:underline">
+                  {board.name}
+                </a>
+                {board.description && <p className="text-sm text-gray-500">{board.description}</p>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </main>
   )
 }
