@@ -1,16 +1,16 @@
-import { Metadata } from 'next'
+// app/post/[id]/page.tsx
 import supabase from '@/lib/supabaseClient'
 import { notFound } from 'next/navigation'
 import CommentForm from '@/components/comment-form'
 import CommentList from '@/components/comment-list'
 
-interface Props {
+type PageProps = {
   params: {
     id: string
   }
 }
 
-export default async function PostPage({ params }: Props) {
+export default async function PostPage({ params }: PageProps) {
   const { data: post } = await supabase
     .from('posts')
     .select('*')
@@ -29,11 +29,9 @@ export default async function PostPage({ params }: Props) {
         <p>{post.content}</p>
       </div>
 
-      {/* 댓글 작성 */}
       <h2 className="text-lg font-semibold mb-2">댓글 작성</h2>
       <CommentForm postId={params.id} />
 
-      {/* 댓글 리스트 */}
       <h2 className="text-lg font-semibold mt-10 mb-2">댓글 목록</h2>
       <CommentList postId={params.id} />
     </main>
